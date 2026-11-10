@@ -1,70 +1,108 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./styles/globals.css";
+import "./globals.css";
 
-import { Footer } from "@/app/components/layout/Footer";
-import { Header } from "@/app/components/layout/Header";
-import { ThemeProvider } from "@/app/components/layout/theme-provider";
-import { cn } from "@/app/lib/utils";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { site } from "@/content/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NODE_ENV === "production"
-      ? "https://niteshg0.vercel.app"
-      : "http://localhost:3000"
-  ),
-  title: "Nitesh Kumar Gupta | Portfolio",
-  description: "Portfolio of Nitesh Kumar Gupta - Full Stack Developer",
-  openGraph: {
-    images: ["/images/profile.jpg"], // Using your existing profile image
+  metadataBase: new URL(site.url),
+  title: {
+    default: site.title,
+    template: `%s — ${site.name}`,
   },
+  description: site.description,
+  keywords: [...site.keywords],
+  authors: [{ name: site.name, url: site.url }],
+  creator: site.name,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: site.name,
+    title: site.title,
+    description: site.description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: site.title,
+    description: site.description,
+  },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf9f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0b0c" },
+  ],
+};
+
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: site.name,
+  url: site.url,
+  jobTitle: site.role,
+  email: `mailto:${site.email}`,
+  image: `${site.url}/images/profile.jpg`,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Ayodhya",
+    addressRegion: "Uttar Pradesh",
+    addressCountry: "IN",
+  },
+  alumniOf: {
+    "@type": "CollegeOrUniversity",
+    name: "Madan Mohan Malaviya University of Technology",
+  },
+  sameAs: [site.social.github, site.social.linkedin],
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
-      className="scroll-smooth dark"
-      style={{ colorScheme: "dark" }}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <body
-        className={cn(
-          geistSans.variable,
-          geistMono.variable,
-          "font-sans antialiased bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300"
-        )}
-      >
+      <body className="min-h-dvh antialiased">
+        <noscript>
+          {/* Without JS the scroll-reveal observer never runs. */}
+          <style>{`.reveal{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <div className="relative min-h-screen flex flex-col">
-            <div className="fixed inset-0 -z-10">
-              <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_60%,transparent_100%)]"></div>
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/80 dark:to-neutral-950/80"></div>
-            </div>
-
-            <Header />
-            <main className="flex-1 pt-16 ">{children}</main>
-            <Footer />
-          </div>
+          <Header />
+          <main id="main">{children}</main>
+          <Footer />
         </ThemeProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
       </body>
     </html>
   );
