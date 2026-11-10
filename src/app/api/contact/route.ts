@@ -1,56 +1,73 @@
-// src/app/api/contact/route.ts
-import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
+import { contactSchema } from "@/lib/contact-schema";
 
+/**
+ * Sends contact-form submissions to the site owner over Gmail SMTP.
+ *
+ * Required environment variables (unchanged from the previous setup):
+ *   GMAIL_EMAIL         the Gmail address that sends and receives the mail
+ *   GMAIL_APP_PASSWORD  an app password for that account
+ */
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const { name, email, message } = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { success: false, message: "Invalid request body." },
+      { status: 400 }
+    );
+  }
 
-    if (!name || !email || !message) {
-      return NextResponse.json(
-        { success: false, message: "All fields are required." },
-        { status: 400 }
-      );
-    }
+  const parsed = contactSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { success: false, message: "Please check the form and try again." },
+      { status: 400 }
+    );
+  }
 
-    if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
-      console.error('Missing email configuration');
-      return NextResponse.json(
-        { success: false, message: "Server configuration error." },
-        { status: 500 }
-      );
-    }
+  const { name, email, message, company } = parsed.data;
 
+  // Honeypot tripped: pretend it worked so bots don't retry.
+  if (company) {
+    return NextResponse.json({ success: true, message: "Message sent." });
+  }
+
+  const user = process.env.GMAIL_EMAIL;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+
+  if (!user || !pass) {
+    console.error("Contact form: GMAIL_EMAIL / GMAIL_APP_PASSWORD not set.");
+    return NextResponse.json(
+      { success: false, message: "Email is not configured on the server." },
+      { status: 500 }
+    );
+  }
+
+  try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: {
-        user: process.env.GMAIL_EMAIL,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
+      auth: { user, pass },
     });
 
-    const mailOptions = {
-      from: `"${name}" <${process.env.GMAIL_EMAIL}>`,
-      to: process.env.GMAIL_EMAIL,
-      subject: `New Portfolio Contact from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-      replyTo: email,
-    };
+    // Strip characters that could break out of the display name / subject.
+    const safeName = name.replace(/["<>\r\n]/g, "");
 
-    await transporter.sendMail(mailOptions);
-    
-    return NextResponse.json(
-      { success: true, message: "Message sent successfully!" },
-      { status: 200 }
-    );
+    await transporter.sendMail({
+      from: `"${safeName} via portfolio" <${user}>`,
+      to: user,
+      replyTo: email,
+      subject: `New portfolio message from ${safeName}`,
+      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+    });
+
+    return NextResponse.json({ success: true, message: "Message sent." });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error("Contact form: failed to send email.", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: "Failed to send message. Please try again later.",
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { success: false, message: "Failed to send message. Please try again later." },
       { status: 500 }
     );
   }

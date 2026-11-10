@@ -1,49 +1,83 @@
-# Nitesh Kumar Gupta - Portfolio
+# Nitesh Kumar Gupta — Portfolio
 
-Welcome to the source code for my personal portfolio website. I am a Full-Stack Developer & AI Enthusiast based in Ayodhya, Uttar Pradesh, and a B.Tech IT student at MMMUT. 
+Personal portfolio of Nitesh Kumar Gupta, Full-Stack Developer & AI Engineer.
 
-This website showcases my skills, experience, and the projects I've built, including full-stack applications like ShopHub, AlmaSphere, and Mystery Message.
+**Live:** https://niteshg0.vercel.app
 
-## 🚀 Live Demo
+## Stack
 
-[Visit my portfolio](https://portfolio-gqlfvs2d8-niteshs-projects-fd889b23.vercel.app/)
+- [Next.js 16](https://nextjs.org/) (App Router) · React 19 · TypeScript
+- [Tailwind CSS v4](https://tailwindcss.com/) with CSS-variable design tokens
+- [next-themes](https://github.com/pacocoursey/next-themes) for light / dark mode
+- react-hook-form + zod for the contact form, nodemailer for delivery
+- Deployed on [Vercel](https://vercel.com/)
 
-*(Note: Replace the link above with your custom domain or final Vercel URL if it changes)*
+No animation or UI-kit dependencies: scroll reveals are a single
+`IntersectionObserver` component and CSS transitions.
 
-## 🛠️ Built With
+## Project structure
 
-This portfolio is built with modern web technologies:
+```
+src/
+├─ app/
+│  ├─ layout.tsx            Root layout, fonts, SEO metadata, JSON-LD
+│  ├─ page.tsx              Home page (composes the sections)
+│  ├─ projects/page.tsx     /projects
+│  ├─ api/contact/route.ts  Contact form endpoint
+│  ├─ globals.css           Design tokens + base styles
+│  └─ opengraph-image.tsx, icon.svg, sitemap.ts, robots.ts, not-found.tsx
+├─ components/
+│  ├─ layout/               Header, Footer, theme provider + toggle
+│  ├─ sections/             Hero, About, Skills, Experience, Projects, Education, Contact
+│  └─ ui/                   Button, Section, Reveal, TechList, BrowserFrame, …
+├─ content/                 ← all copy and data lives here
+│  ├─ site.ts               Name, links, hero and about text, nav
+│  ├─ skills.ts
+│  ├─ experience.ts
+│  ├─ projects.ts
+│  └─ education.ts
+└─ lib/                     cn() helper, shared contact schema
+```
 
-- **Framework:** [Next.js](https://nextjs.org/) (App Router)
-- **Language:** [TypeScript](https://www.typescriptlang.org/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **Animations:** [Framer Motion](https://www.framer.com/motion/) & [Aceternity UI](https://ui.aceternity.com/)
-- **Icons:** [Lucide React](https://lucide.dev/) & [React Icons](https://react-icons.github.io/react-icons/)
-- **Deployment:** [Vercel](https://vercel.com/)
+## Updating content
 
-## 💻 Getting Started
+Everything a visitor reads is in `src/content/`. Components contain no copy.
 
-To run this project locally, follow these steps:
+- **Add a project** — append an object to `projects` in `src/content/projects.ts`
+  and drop a screenshot in `public/images/`. Set `featured: true` for the large
+  layout.
+- **Add a role** — prepend to `experience` in `src/content/experience.ts`.
+- **Résumé** — replace `public/resume.pdf`.
+- **Colours / type** — edit the tokens at the top of `src/app/globals.css`.
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/niteshg0/portfolio.git
-   cd portfolio
-   ```
+## Local development
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
 
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-## 📬 Contact
+Other scripts: `npm run build`, `npm run start`, `npm run lint`.
+
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill it in.
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL for metadata, sitemap and social cards |
+| `GMAIL_EMAIL` | Gmail address that sends and receives contact-form mail |
+| `GMAIL_APP_PASSWORD` | Google app password for that account |
+
+Without the Gmail variables the site still works; the contact form shows a
+fallback asking visitors to email directly.
+
+## Contact
 
 - **Email:** nit947396@gmail.com
 - **LinkedIn:** [niteshg0](https://linkedin.com/in/niteshg0)
